@@ -1,6 +1,6 @@
 CC=clang
 
-.PHONY: clear fork shm shm_read
+.PHONY: clear fork shm shm_read pipe pthreads workers shm_list shm_list_read
 
 fork:
 	$(CC) -o fork fork.c && ./fork
@@ -11,5 +11,20 @@ shm:
 shm_read:
 	$(CC) -o shm_read shm_read.c && ./shm_read
 
+shm_list:
+	$(CC) -o shm_list shm_list.c && ./shm_list
+
+shm_list_read:
+	$(CC) -o shm_list_read shm_list_read.c && ./shm_list_read
+
+pipe:
+	$(CC) -o pipe pipe.c && ./pipe
+
+pthreads:
+	$(CC) -o pthreads pthreads.c -lpthread && ./pthreads 10
+
+workers:
+	$(CC) -o workers workers.c -lpthread && ./workers
+
 clear:
-	rm -rf fork shm shm_read
+	rm -rf fork shm shm_read pipe pthreads workers shm_list shm_list_read
