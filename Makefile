@@ -12,4 +12,4 @@ shm_read:
 	$(CC) -o shm_read shm_read.c && ./shm_read
 
 clear:
-	rm -f fork shm shm_read
+	rm -rf fork shm shm_read

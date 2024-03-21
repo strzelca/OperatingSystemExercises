@@ -8,20 +8,24 @@
 
 #include <sys/mman.h>
 
-#define SIZE 4096
-
 int main(void) {
+  const int SIZE = 4096;
   const char *name = "OS";
   const char *message_0 = "Hello";
   const char *message_1 = "World!";
 
   int fd;
-  char *ptr;
+  void *ptr;
 
   fd = shm_open(name, O_CREAT | O_RDWR, 0666);
   ftruncate(fd, SIZE);
 
   ptr = (char *)mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+
+  if (ptr == MAP_FAILED) {
+    printf("Error Creating mmap\n");
+    return 1;
+  }
 
   sprintf(ptr, "%s", message_0);
   ptr += strlen(message_0);

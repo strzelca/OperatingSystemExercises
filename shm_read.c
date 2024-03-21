@@ -1,26 +1,27 @@
 #include <fcntl.h>
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include <sys/shm.h>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include <sys/mman.h>
 
-#define SIZE 4096
-
 int main(void) {
+  const int SIZE = 4096;
   const char *name = "OS";
 
   int fd;
-  char *ptr;
+  void *ptr;
 
   fd = shm_open(name, O_RDONLY, 0666);
 
-  ptr = (char *)mmap(0, SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+  ptr = (char *)mmap(0, SIZE, PROT_READ, MAP_SHARED, fd, 0);
+  if (ptr == MAP_FAILED) {
+    printf("Error Creating mmap\n");
+    return 1;
+  }
 
-  printf("%s", (char *)ptr);
+  printf("%s\n", (char *)ptr);
 
   shm_unlink(name);
 
