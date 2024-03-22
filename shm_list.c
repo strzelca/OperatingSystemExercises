@@ -22,7 +22,7 @@ int main(void) {
   struct Node *list = (struct Node *)malloc(sizeof(struct Node));
   struct Node *curr = list;
 
-  for (int i = 1; i <= 10; i++) {
+  for (int i = 1; i <= 20; i++) {
     curr->val = i;
     curr->next = (struct Node *)malloc(sizeof(struct Node));
     curr = curr->next;
