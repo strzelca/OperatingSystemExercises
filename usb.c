@@ -9,19 +9,19 @@ const char *usbidx = "/usr/share/hwdata/usb.ids";
 int main(void) {
   libusb_device **list_device;
   size_t device_num;
-  char vendorName[64] = "";
-  char productName[64] = "";
+  char vendorName[64] = "", productName[64] = "";
   char cmd[128] = "";
-  FILE *usbids;
-  FILE *productids;
+  FILE *usbids, *productids;
   int rc;
 
   if ((rc = libusb_init(NULL)) < 0) {
     printf("Failed initializing libusb\n");
+    return -1;
   }
 
   if ((device_num = libusb_get_device_list(NULL, &list_device)) < 0) {
     printf("Failed getting device list\n");
+    return -1;
   }
 
   for (int i = device_num - 1; i >= 0; i--) {
@@ -29,6 +29,7 @@ int main(void) {
     struct libusb_device_descriptor desc;
     if ((rc = libusb_get_device_descriptor(device, &desc)) < 0) {
       printf("Failed getting descriptor\n");
+      return -1;
     }
 
     sprintf(cmd, "grep \"^%04x\" %s  | sed -r s/%04x// | tr -d '\t|\n'",
@@ -50,11 +51,15 @@ int main(void) {
 
     pclose(productids);
     pclose(usbids);
+
     printf("Bus %03d Dev %03d: ID %04x:%04x%s%s\n",
            libusb_get_bus_number(device), libusb_get_device_address(device),
            desc.idVendor, desc.idProduct, vendorName, productName);
+
     memset(vendorName, 0, 64);
     memset(productName, 0, 64);
   }
+
   libusb_free_device_list(list_device, 1);
+  return 0;
 }
