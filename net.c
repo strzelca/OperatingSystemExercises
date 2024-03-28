@@ -1,10 +1,12 @@
 #include <arpa/inet.h>
 #include <ifaddrs.h>
 #include <linux/if_link.h>
+#include <net/if.h>
 #include <netdb.h>
 #include <netinet/in.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -12,10 +14,12 @@ typedef unsigned _BitInt(128) uint128_t;
 
 int main(void) {
   struct ifaddrs *ifaddr;
-  int family, nameinfo_fd, netmaskinfo_fd, prefixlen;
+  int family, nameinfo_fd, netmaskinfo_fd, prefixlen, sock;
   struct in_addr host_n, netmask_n, broadcast_n;
   struct in6_addr host6_n, netmask6_n, broadcast6_n;
+  struct ifreq ifr;
   char host[NI_MAXHOST], netmask[NI_MAXHOST], broadcast[NI_MAXHOST];
+  char mac[35];
 
   if (getifaddrs(&ifaddr) == -1) {
     printf("Error getting interface addresses\n");
@@ -54,6 +58,26 @@ int main(void) {
                 (family == AF_INET) ? &netmask_n
                                     : (struct in_addr *)&netmask6_n);
 
+      memset(&ifr, 0, sizeof(struct ifreq));
+      sock = socket(AF_INET, SOCK_DGRAM, 0);
+
+      ifr.ifr_addr.sa_family = AF_INET;
+      strncpy(ifr.ifr_name, ifa->ifa_name, IFNAMSIZ - 1);
+
+      if (ioctl(sock, SIOCGIFHWADDR, &ifr) < 0) {
+        printf("Failed getting data from socket\n");
+        return -1;
+      }
+
+      memset(mac, 0, sizeof(mac));
+      for (int i = 0; i < 6; i++) {
+        char partial_mac[3];
+        sprintf(partial_mac, "%02x", (unsigned char)ifr.ifr_hwaddr.sa_data[i]);
+        strcat(mac, partial_mac);
+        if (i < 5)
+          strcat(mac, ":");
+      }
+
       uint128_t mask;
       if (family == AF_INET) {
         mask = ntohl(netmask_n.s_addr);
@@ -89,9 +113,10 @@ int main(void) {
         return -1;
       }
 
-      printf("\t\tinet%s: <%s/%d>\n\t\tnetmask: <%s>\n\t\tbroadcast: <%s>\n",
+      printf("\t\tinet%s: <%s/%d>\n\t\tnetmask: <%s>\n\t\tbroadcast: "
+             "<%s>\n\t\tether: <%s>\n\n",
              (family == AF_INET) ? "" : "6", host, prefixlen, netmask,
-             broadcast);
+             broadcast, mac);
     } else if (family == AF_PACKET && ifa->ifa_data != NULL) {
       struct rtnl_link_stats *stats = ifa->ifa_data;
 
