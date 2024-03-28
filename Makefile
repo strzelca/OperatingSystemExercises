@@ -1,6 +1,7 @@
 CC=clang
 
-.PHONY: clear fork shm shm_read pipe pthreads workers shm_list shm_list_read usb disks
+
+.PHONY: clear fork shm shm_read pipe pthreads workers shm_list shm_list_read usb disks net
 
 fork:
 	$(CC) -o fork fork.c && ./fork
@@ -32,5 +33,8 @@ usb:
 disks:
 	$(CC) -o disks disks.c -lsystemd && ./disks
 
+net:
+	$(CC) -o net net.c --std=gnu2x && ./net
+
 clear:
-	rm -rf fork shm shm_read pipe pthreads workers shm_list shm_list_read usb disks
+	rm -rf fork shm shm_read pipe pthreads workers shm_list shm_list_read usb disks net
